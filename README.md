@@ -1,2 +1,3 @@
 # Vents
-A crossplateform events manager
+[Vents.js](https://github.com/maximetch/Vents) is a cross plateform events listener
+...
