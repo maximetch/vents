@@ -5,9 +5,8 @@ var Vents = {
    *
    */
   add: function Vents_add(name, element, callback) {
-    var i, comp, eventFn, names, namesLen, isMobile, els, el, finalName;
+    var i, comp, eventFn, names, els, el, finalName;
 
-    isMobile = this._isMobile();
     els = this._getElements(element);
 
     for (i = 0; i < els.length; i += 1) {
@@ -16,10 +15,9 @@ var Vents = {
       // Case of many events binded
       if (/\,/.test(name)) {
         names = name.split(',');
-        namesLen = names.length;
 
-        for (i = 0; i < namesLen; i += 1) {
-          Vents.add(el, names[i].trim(), callback);
+        for (i = 0; i < names.length; i += 1) {
+          Vents.add(names[i].trim(), element, callback);
         }
       } else {
         finalName = this._getFinalEventName(name);
