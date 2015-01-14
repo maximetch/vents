@@ -1,5 +1,5 @@
 # Vents
-[Vents.js](https://github.com/maximetch/Vents) is a cross platform events listener.
+[Vents.js](https://github.com/maximetch/Vents) is a cross platform events listener allowing to manage natives, virtuals or customs events.
 
 ## Getting Started
 
