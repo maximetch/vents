@@ -184,14 +184,14 @@ var Vents = {
     return navigator.userAgent.match(new RegExp(agentCheck, 'i'));
   },
 
-  _getFinalEventName: function(name) {
+  _getFinalEventName: function _Vents_getFinalEventName(name) {
     var isMobile, finalName;
 
     isMobile = this._isMobile();
 
     switch (name) {
       case 'vclick':
-        finalName = isMobile ? 'touchstart' : 'click';
+        finalName = isMobile ? 'touchend' : 'click';
         break;
 
       case 'vmousedown':
