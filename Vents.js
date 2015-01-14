@@ -1,95 +1,29 @@
 "use strict";
 
 var Vents = {
-  _utils: {
-    getElement: function _Vents_utils_getElement() {
-      var arg = arguments[0];
-
-      return typeof arg === 'string' ? document.querySelector(arg) : arg;
-    },
-
-    isMobile: {
-      Android: function isMobile_Android() {
-        return navigator.userAgent.match(/Android/i);
-      },
-      BlackBerry: function isMobile_BlackBerry() {
-        return navigator.userAgent.match(/BlackBerry/i);
-      },
-      iOS: function isMobile_iOS() {
-        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
-      },
-      Opera: function isMobile_Opera() {
-        return navigator.userAgent.match(/Opera Mini/i);
-      },
-      Windows: function isMobile_Windows() {
-        return navigator.userAgent.match(/IEMobile/i);
-      },
-      any: function isMobile_any() {
-        return (this.Android() || this.BlackBerry() || this.iOS() || this.Opera() || this.Windows());
-      }
-    }
-  },
-
   /**
    *
    */
-  add: function Vents_add(name, el, callback) {
-    var i, comp, eventFn, names, namesLen, isMobile;
+  add: function Vents_add(name, element, callback) {
+    var i, comp, eventFn, names, namesLen, isMobile, els, el, finalName;
 
-    isMobile = this._utils.isMobile.any();
-    el = this._utils.getElement(el);
+    isMobile = this._isMobile();
+    els = this._getElements(element);
 
-    // Case of many events binded
-    if (/\,/.test(name)) {
-      names = name.split(',');
-      namesLen = names.length;
+    for (i = 0; i < els.length; i += 1) {
+      el = els[i];
 
-      for (i = 0; i < namesLen; i += 1) {
-        Vents.add(el, names[i].trim(), callback);
-      }
-    } else {
-      switch (name) {
-        case 'vclick':
-          name = isMobile ? 'touchstart' : 'click';
-          break;
+      // Case of many events binded
+      if (/\,/.test(name)) {
+        names = name.split(',');
+        namesLen = names.length;
 
-        case 'vmousedown':
-          name = isMobile ? 'touchstart' : 'mousedown';
-          break;
-
-        case 'vmouseup':
-          name = isMobile ? 'touchend' : 'mouseup';
-          break;
-
-        case 'vmousemove':
-          name = isMobile ? 'touchmove' : 'mousemove';
-          break;
-
-        case 'mouseenter':
-        case 'mouseleave':
-          name = name === 'mouseenter' ? 'mouseover' : 'mouseout';
-
-          eventFn = function(e) {
-            var parent = e.relatedTarget;
-
-            while (parent && parent != el) {
-              try {
-                parent = parent.parentNode;
-              } catch (e) {
-                break;
-              }
-            }
-
-            if (parent != node) {
-              callback.call(el, e);
-            }
-          };
-
-          break;
-
-        case 'rclick':
-          name = 'mousedown';
-
+        for (i = 0; i < namesLen; i += 1) {
+          Vents.add(el, names[i].trim(), callback);
+        }
+      } else {
+        finalName = this._getFinalEventName(name);
+        if (name === 'rclick') {
           eventFn = function(e) {
             if (e.which === 3) {
               callback.call(el, e);
@@ -105,104 +39,189 @@ var Vents = {
           el.oncontextmenu = function() {
             return false;
           };
+        }
 
-          break;
+        if (!eventFn) {
+          eventFn = function(e) {
+            if (callback) {
+              callback.call(el, e);
+            }
+          };
+        }
 
-        default:
-          break;
+        if (!el._eventsListeners) {
+          el._eventsListeners = {};
+        }
+
+        if (!el._eventsListeners[name]) {
+          el._eventsListeners[name] = [];
+        }
+
+        el._eventsListeners[name].push({
+          callback: callback,
+          eventFn: eventFn
+        });
+
+        el.addEventListener(finalName, eventFn);
       }
-
-      if (!eventFn) {
-        eventFn = function(e) {
-          var returnRslt = true;
-
-          if (callback) {
-            returnRslt = callback.call(el, e);
-          }
-        };
-      }
-
-      if (!el._eventsListeners) {
-        el._eventsListeners = {};
-      }
-
-      if (!el._eventsListeners[name]) {
-        el._eventsListeners[name] = [];
-      }
-
-      el._eventsListeners[name].push({
-        callback: callback,
-        eventFn: eventFn
-      });
-
-      el.addEventListener(name, eventFn);
     }
-
-    return this;
   },
 
   /**
    *
    */
-  remove: function Vents_remove(name, el, fn) {
-    var i, listeners, listenersLen, listener, defaultFn;
+  remove: function Vents_remove(name, element, fn) {
+    var i, j, listeners, listener, defaultFn, els, el, finalName;
 
-    el = this._utils.getElement(el);
-    listeners = this.get(name, el);
+    els = this._getElements(element);
+    finalName = this._getFinalEventName(name);
 
-    for (i = 0; i < listeners.length; i += 1) {
-      listener = listeners[i];
+    for (i = 0; i < els.length; i += 1) {
+      el = els[i];
+      listeners = this.get(name, el);
+      j = listeners.length;
 
-      if (fn === listener.callback || fn === undefined) {
-        el.removeEventListener(name, listener.eventFn);
-        listeners.splice(i, 1);
+      while (j--) {
+        listener = listeners[j];
+
+        if (fn === listener.callback || fn === undefined) {
+          el.removeEventListener(finalName, listener.eventFn);
+          listeners.splice(j, 1);
+        }
       }
     }
-
-    return this;
   },
 
   /**
    *
    */
-  trigger: function Vents_trigger(name, el) {
-    var i, listeners, listenersLen, listener, name, args;
+  get: function Vents_get(name, element) {
+    var listeners, result;
 
-    args = [];
-    el = this._utils.getElement(el);
-    listeners = this.get(name, el);
+    element = this._getElements(element);
+    listeners = element._eventsListeners;
 
-    for (i = 0; i < arguments.length; i += 1) {
-      if (i === 0) {
-        name = arguments[i];
-      } else {
-        args.push(arguments[i]);
-      }
-    }
-
-    // Call listener load event
-    for (i = 0, listenersLen = listeners.length; i < listenersLen; i += 1) {
-      listener = listeners[i];
-      listener.eventFn.apply(this, args);
-    }
-
-    return this;
-  },
-
-  /**
-   *
-   */
-  get: function Vents_get(name, el) {
-    var result;
-
-    el = this._utils.getElement(el);
-
-    if (name) {
-      result = el._eventsListeners[name];
+    if (listeners && name) {
+      result = element._eventsListeners[name];
+    } else if (listeners) {
+      result = element._eventsListeners;
     } else {
-      result = el._eventsListeners;
+      result = [];
     }
 
     return result;
-  }
+  },
+
+  /**
+   *
+   */
+  trigger: function Vents_trigger(name, element) {
+    var i, j, listeners, args, els, el;
+
+    args = [];
+    els = this._getElements(element);
+
+    for (i = 0; i < els.length; i += 1) {
+      el = els[i];
+      listeners = this.get(name, el);
+
+      for (j = 0; j < arguments.length; j += 1) {
+        if (j === 0) {
+          name = arguments[j];
+        } else {
+          args.push(arguments[j]);
+        }
+      }
+
+      // Call listener load event
+      for (j = 0; j < listeners.length; j += 1) {
+        listeners[j].eventFn.apply(this, args);
+      }
+    }
+  },
+
+  /**
+   *
+   */
+  _getElements: function _Vents_getElements() {
+    var arg = arguments[0];
+
+    return typeof arg === 'string' ? document.querySelectorAll(arg) : arg;
+  },
+
+  /**
+   *
+   */
+  _isMobile: function _Vents_isMobile(type) {
+    var agents, agentCheck;
+
+    agents = ['Android', 'BlackBerry', 'iPhone|iPad|iPod', 'Opera Mini', 'IEMobile'];
+
+    switch (type) {
+    case 'Android':
+      agentCheck = agents[0];
+      break;
+
+    case 'BlackBerry':
+      agentCheck = agents[1];
+      break;
+
+    case 'iOS':
+      agentCheck = agents[2];
+      break;
+
+    case 'Opera':
+      agentCheck = agents[3];
+      break;
+
+    case 'Windows':
+      agentCheck = agents[4];
+      break;
+
+    default:
+      agentCheck = agents.join('|');
+      break;
+    }
+
+    return navigator.userAgent.match(new RegExp(agentCheck, 'i'));
+  },
+
+  _getFinalEventName: function(name) {
+    var isMobile, finalName;
+
+    isMobile = this._isMobile();
+
+    switch (name) {
+      case 'vclick':
+        finalName = isMobile ? 'touchstart' : 'click';
+        break;
+
+      case 'vmousedown':
+        finalName = isMobile ? 'touchstart' : 'mousedown';
+        break;
+
+      case 'vmouseup':
+        finalName = isMobile ? 'touchend' : 'mouseup';
+        break;
+
+      case 'vmousemove':
+        finalName = isMobile ? 'touchmove' : 'mousemove';
+        break;
+
+      case 'mouseenter':
+      case 'mouseleave':
+        finalName = name === 'mouseenter' ? 'mouseover' : 'mouseout';
+        break;
+
+      case 'rclick':
+        finalName = 'mousedown';
+        break;
+
+      default:
+        finalName = name;
+        break;
+    }
+
+    return finalName;
+  },
 };
