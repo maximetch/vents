@@ -2,29 +2,32 @@
 
 var Vents = {
   /**
-   *
+   * Register a listener on a Dom element.
+   * @param {String} type The event type to listen for
+   * @param {Object} eventTarget The event target
+   * @param {Function} listener Function fired when the event occurs
    */
-  add: function Vents_add(name, element, callback) {
-    var i, comp, eventFn, names, els, el, finalName;
+  add: function Vents_add(type, eventTarget, listener) {
+    var i, comp, eventFn, allType, eventTargets, target, finalType;
 
-    els = this._getElements(element);
+    eventTargets = this._getElements(eventTarget);
 
-    for (i = 0; i < els.length; i += 1) {
-      el = els[i];
+    for (i = 0; i < eventTargets.length; i += 1) {
+      target = eventTargets[i];
 
       // Case of many events binded
-      if (/\,/.test(name)) {
-        names = name.split(',');
+      if (/\,/.test(type)) {
+        allType = type.split(',');
 
-        for (i = 0; i < names.length; i += 1) {
-          Vents.add(names[i].trim(), element, callback);
+        for (i = 0; i < allType.length; i += 1) {
+          Vents.add(allType[i].trim(), eventTarget, listener);
         }
       } else {
-        finalName = this._getFinalEventName(name);
-        if (name === 'rclick') {
+        finalType = this._getFinalEventType(type);
+        if (type === 'rclick') {
           eventFn = function(e) {
             if (e.which === 3) {
-              callback.call(el, e);
+              listener.call(el, e);
             }
 
             e.stopPropagation();
@@ -34,56 +37,59 @@ var Vents = {
           };
 
           // Disable default context menu
-          el.oncontextmenu = function() {
+          target.oncontextmenu = function() {
             return false;
           };
         }
 
         if (!eventFn) {
           eventFn = function(e) {
-            if (callback) {
-              callback.call(el, e);
+            if (listener) {
+              listener.call(target, e);
             }
           };
         }
 
-        if (!el._eventsListeners) {
-          el._eventsListeners = {};
+        if (!target._eventsListeners) {
+          target._eventsListeners = {};
         }
 
-        if (!el._eventsListeners[name]) {
-          el._eventsListeners[name] = [];
+        if (!target._eventsListeners[type]) {
+          target._eventsListeners[type] = [];
         }
 
-        el._eventsListeners[name].push({
-          callback: callback,
+        target._eventsListeners[type].push({
+          listener: listener,
           eventFn: eventFn
         });
 
-        el.addEventListener(finalName, eventFn);
+        target.addEventListener(finalType, eventFn);
       }
     }
   },
 
   /**
-   *
+   * Register a listener on a Dom element.
+   * @param {String} type The event type to listen for
+   * @param {Object} eventTarget The event target
+   * @param {Function} listener Event listener function to be remove
    */
-  remove: function Vents_remove(name, element, fn) {
-    var i, j, listeners, listener, defaultFn, els, el, finalName;
+  remove: function Vents_remove(type, eventTarget, listener) {
+    var i, j, listeners, listener, defaultFn, eventTargets, target, finalType;
 
-    els = this._getElements(element);
-    finalName = this._getFinalEventName(name);
+    eventTargets = this._getElements(eventTarget);
+    finalType = this._getFinalEventType(type);
 
-    for (i = 0; i < els.length; i += 1) {
-      el = els[i];
-      listeners = this.get(name, el);
+    for (i = 0; i < eventTargets.length; i += 1) {
+      target = eventTargets[i];
+      listeners = this._getEventListeners(type, target);
       j = listeners.length;
 
       while (j--) {
         listener = listeners[j];
 
-        if (fn === listener.callback || fn === undefined) {
-          el.removeEventListener(finalName, listener.eventFn);
+        if (listener === listener.listener || listener === undefined) {
+          target.removeEventListener(finalType, listener.eventFn);
           listeners.splice(j, 1);
         }
       }
@@ -91,41 +97,23 @@ var Vents = {
   },
 
   /**
-   *
+   * Execute the event
+   * @param {String} type The event type to execute
+   * @param {Object} eventTarget The event target
    */
-  get: function Vents_get(name, element) {
-    var listeners, result;
-
-    element = this._getElements(element);
-    listeners = element._eventsListeners;
-
-    if (listeners && name) {
-      result = element._eventsListeners[name];
-    } else if (listeners) {
-      result = element._eventsListeners;
-    } else {
-      result = [];
-    }
-
-    return result;
-  },
-
-  /**
-   *
-   */
-  trigger: function Vents_trigger(name, element) {
-    var i, j, listeners, args, els, el;
+  trigger: function Vents_trigger(type, eventTarget) {
+    var i, j, listeners, args, eventTargets, target;
 
     args = [];
-    els = this._getElements(element);
+    eventTargets = this._getElements(eventTarget);
 
-    for (i = 0; i < els.length; i += 1) {
-      el = els[i];
-      listeners = this.get(name, el);
+    for (i = 0; i < eventTargets.length; i += 1) {
+      target = eventTargets[i];
+      listeners = this._getEventListeners(type, target);
 
       for (j = 0; j < arguments.length; j += 1) {
         if (j === 0) {
-          name = arguments[j];
+          type = arguments[j];
         } else {
           args.push(arguments[j]);
         }
@@ -139,7 +127,31 @@ var Vents = {
   },
 
   /**
-   *
+   * @private
+   * Return the list of event listeners for a type of event of an eventTarget
+   * @param {String} type The event type to listen for
+   * @param {Object} eventTarget The event target
+   */
+  _getEventListeners: function _Vents_getEventListeners(type, eventTarget) {
+    var listeners, result, target;
+
+    target = this._getElements(eventTarget);
+    listeners = target._eventsListeners;
+
+    if (listeners && type) {
+      result = target._eventsListeners[type];
+    } else if (listeners) {
+      result = target._eventsListeners;
+    } else {
+      result = [];
+    }
+
+    return result;
+  },
+
+  /**
+   * @private
+   * @return {Object} Elements
    */
   _getElements: function _Vents_getElements() {
     var arg = arguments[0];
@@ -148,7 +160,10 @@ var Vents = {
   },
 
   /**
-   *
+   * @private
+   * Check the platform
+   * @param {String} type Platform type to check
+   * @return {Boolean}
    */
   _isMobile: function _Vents_isMobile(type) {
     var agents, agentCheck;
@@ -184,42 +199,48 @@ var Vents = {
     return navigator.userAgent.match(new RegExp(agentCheck, 'i'));
   },
 
-  _getFinalEventName: function _Vents_getFinalEventName(name) {
-    var isMobile, finalName;
+  /**
+   * @private
+   * Get the final event type depending on the current platform
+   * @param {String} type Event type
+   * @return {String} Final event type
+   */
+  _getFinalEventType: function _Vents_getFinalEventType(type) {
+    var isMobile, finalType;
 
     isMobile = this._isMobile();
 
-    switch (name) {
+    switch (type) {
       case 'vclick':
-        finalName = isMobile ? 'touchend' : 'click';
+        finalType = isMobile ? 'touchend' : 'click';
         break;
 
       case 'vmousedown':
-        finalName = isMobile ? 'touchstart' : 'mousedown';
+        finalType = isMobile ? 'touchstart' : 'mousedown';
         break;
 
       case 'vmouseup':
-        finalName = isMobile ? 'touchend' : 'mouseup';
+        finalType = isMobile ? 'touchend' : 'mouseup';
         break;
 
       case 'vmousemove':
-        finalName = isMobile ? 'touchmove' : 'mousemove';
+        finalType = isMobile ? 'touchmove' : 'mousemove';
         break;
 
       case 'mouseenter':
       case 'mouseleave':
-        finalName = name === 'mouseenter' ? 'mouseover' : 'mouseout';
+        finalType = type === 'mouseenter' ? 'mouseover' : 'mouseout';
         break;
 
       case 'rclick':
-        finalName = 'mousedown';
+        finalType = 'mousedown';
         break;
 
       default:
-        finalName = name;
+        finalType = type;
         break;
     }
 
-    return finalName;
+    return finalType;
   },
 };
