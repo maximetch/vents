@@ -8,7 +8,8 @@ Let's say we have an element with 'myElement' id.
 ### Add an event on a DOM element
 
 ```html
-Vents.add('vclick', '#myElement', function() {
+var myVents = new Vents('#myElement');
+myVents.add('vclick', function() {
   alert('Hello World');
 });
 ```
@@ -19,7 +20,7 @@ _Nb: You use selector syntax ('#myElement) or DOM element object (document.query
 ### Remove an event from a DOM element
 
 ```html
-Vents.remove('vclick', '#myElement');
+myVents.remove('vclick');
 ```
 
 ---
@@ -27,7 +28,7 @@ Vents.remove('vclick', '#myElement');
 ### Trigger an event
 
 ```html
-Vents.trigger('vclick', '#myElement');
+myVents.trigger('vclick');
 ```
 
 ---
@@ -35,20 +36,22 @@ Vents.trigger('vclick', '#myElement');
 ### Remove a specific event from a DOM element
 
 ```html
-var myFunction = function() {
+var myVents = new Vents('#myElement');
+var myListener = function() {
   alert('Hello World');
 };
 
-Vents.add('vclick', '#myElement', myFunction);
+myVents.add('vclick', myListener);
 ...
-Vents.remove('vclick', '#myElement', myFunction);
+myVents.remove('vclick', myListener);
 ```
 
 ---
 
 ### Same callback for many events
 ```html
-Vents.add('vclick, rclick', '#myElement', function() {
+var myVents = new Vents('#myElement');
+myVents.add('vclick, rclick', function() {
   alert('Hello World');
 });
 ```
