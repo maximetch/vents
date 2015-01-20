@@ -5,7 +5,7 @@
 
 Let's say we have an element with 'myElement' id.
 
-### Add an event on a DOM element
+### Add an event on a HTML element
 
 ```html
 var myVents = new Vents('#myElement');
