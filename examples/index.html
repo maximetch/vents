@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Examples</title>
+    <script src="../build/Vents-0.1.0.min.js"></script>
+    <style>
+      body {
+        font-family: verdana;
+      }
+
+      .sample-button {
+        background-color: grey;
+        border: none;
+        padding: 10px;
+        display: inline-block;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Vents examples</h1>
+    <div id="helloWorld" class="sample-button">Click to say "Hello World"</div>
+
+    <script>
+      var myVents = new Vents('#helloWorld');
+
+      myVents.add('vclick', function() {
+        alert('Hello World');
+      });
+    </script>
+  </body>
+
+</html>

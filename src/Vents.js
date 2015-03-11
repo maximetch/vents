@@ -65,6 +65,26 @@
   VentsManager.prototype.add = function(type, listener) {
     var i, eventFn, allType, eventTarget, finalType;
 
+
+    if (type === 'rclick') {
+      eventFn = function(e) {
+        if (e.which === 3) {
+          listener.call(eventTarget, e);
+        }
+
+        e.stopPropagation();
+        e.cancelBubble = true;
+
+        return false;
+      };
+    } else {
+      eventFn = function(e) {
+        if (listener) {
+          listener.call(eventTarget, e);
+        }
+      };
+    }
+
     for (i = 0; i < this._eventTargets.length; i += 1) {
       eventTarget = this._eventTargets[i];
 
@@ -78,28 +98,9 @@
       } else {
         finalType = getFinalEventType(type);
         if (type === 'rclick') {
-          eventFn = function(e) {
-            if (e.which === 3) {
-              listener.call(eventTarget, e);
-            }
-
-            e.stopPropagation();
-            e.cancelBubble = true;
-
-            return false;
-          };
-
           // Disable default context menu
           eventTarget.oncontextmenu = function() {
             return false;
-          };
-        }
-
-        if (!eventFn) {
-          eventFn = function(e) {
-            if (listener) {
-              listener.call(eventTarget, e);
-            }
           };
         }
 
