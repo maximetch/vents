@@ -4,7 +4,7 @@
 ## Installation
 
 ```html
-npm i
+$ npm i
 ```
 
 ## Getting Started
