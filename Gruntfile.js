@@ -12,7 +12,7 @@ module.exports = function(grunt) {
       },
       build: {
         src: 'src/<%= pkg.name %>.js',
-        dest: 'build/<%= pkg.name %>-<%= pkg.version %>.min.js'
+        dest: 'build/<%= pkg.name %>.min.js'
       }
     },
     watch: {
