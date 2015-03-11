@@ -1,8 +1,13 @@
 # Vents
 [Vents.js](https://github.com/maximetch/Vents) is a cross platform events listener allowing to manage natives, virtuals or customs events.
 
-## Getting Started
+## Installation
 
+```html
+npm i
+```
+
+## Getting Started
 Let's say we have an element with 'myElement' id.
 
 ### Add an event on a HTML element
