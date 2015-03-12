@@ -87,9 +87,6 @@
       };
     }
 
-
-        console.log(this.eventTarget);
-
     for (i = 0; i < this.eventTarget.length; i += 1) {
       eventTarget = this.eventTarget[i];
 
