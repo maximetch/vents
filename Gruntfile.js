@@ -17,14 +17,14 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: '**/*.js',
-        tasks: ['jshint']
+        files: 'src/*.js',
+        tasks: ['jshint', 'uglify']
       }
     },
     connect: {
       server: {
         options: {
-          port: 8000,
+          port: 9000,
           hostname: '*'
         }
       }

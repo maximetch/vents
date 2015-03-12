@@ -54,7 +54,7 @@
    */
   function VentsManager(eventTarget) {
     this._eventsRegister = {};
-    this._eventTargets = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : eventTarget;
+    this.eventTarget = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : eventTarget;
   }
 
   /**
@@ -85,8 +85,8 @@
       };
     }
 
-    for (i = 0; i < this._eventTargets.length; i += 1) {
-      eventTarget = this._eventTargets[i];
+    for (i = 0; i < this.eventTarget.length; i += 1) {
+      eventTarget = this.eventTarget[i];
 
       // Case of many events binded
       if (/\,/.test(type)) {
