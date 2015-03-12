@@ -30,9 +30,12 @@
         finalType = IS_MOBILE ? 'touchmove' : 'mousemove';
         break;
 
-      case 'mouseenter':
-      case 'mouseleave':
-        finalType = type === 'mouseenter' ? 'mouseover' : 'mouseout';
+      case 'vmouseenter':
+        finalType = IS_MOBILE ? 'touchenter' : 'mouseover';
+        break;
+
+      case 'vmouseleave':
+        finalType = IS_MOBILE ? 'touchleave' : 'mouseout';
         break;
 
       case 'rclick':
@@ -53,7 +56,6 @@
    * @param {HTMLElement} eventTarget
    */
   function VentsManager(eventTarget) {
-    this._eventsRegister = {};
     this.eventTarget = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : eventTarget;
   }
 
