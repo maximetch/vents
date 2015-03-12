@@ -56,6 +56,7 @@
    * @param {HTMLElement} eventTarget
    */
   function VentsManager(eventTarget) {
+    this._eventsRegister = {};
     this.eventTarget = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : eventTarget;
   }
 
