@@ -4,6 +4,7 @@
   'use strict';
 
   var IS_MOBILE = /android|iphone|ipad|ipod|iphone|mobile|tablet/i.test(navigator.userAgent);
+  var eventsRegister = {};
 
   /**
    * Get the final event type depending on the current platform
@@ -56,8 +57,7 @@
    * @param {HTMLElement} eventTarget
    */
   function VentsManager(eventTarget) {
-    this._eventsRegister = {};
-    this.eventTarget = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : eventTarget;
+    this.eventTarget = typeof eventTarget === 'string' ? document.querySelectorAll(eventTarget) : [eventTarget];
   }
 
   /**
@@ -67,7 +67,6 @@
    */
   VentsManager.prototype.add = function(type, listener) {
     var i, eventFn, allType, eventTarget, finalType;
-
 
     if (type === 'rclick') {
       eventFn = function(e) {
@@ -88,6 +87,9 @@
       };
     }
 
+
+        console.log(this.eventTarget);
+
     for (i = 0; i < this.eventTarget.length; i += 1) {
       eventTarget = this.eventTarget[i];
 
@@ -107,11 +109,11 @@
           };
         }
 
-        if (!this._eventsRegister[type]) {
-          this._eventsRegister[type] = [];
+        if (!eventsRegister[type]) {
+          eventsRegister[type] = [];
         }
 
-        this._eventsRegister[type].push({
+        eventsRegister[type].push({
           target: eventTarget,
           listener: listener,
           eventFn: eventFn
@@ -170,7 +172,7 @@
    * @param {Object} eventTarget The event target
    */
   VentsManager.prototype.get = function(type) {
-    return type ? this._eventsRegister[type] : this._eventsRegister;
+    return type ? eventsRegister[type] : eventsRegister;
   };
 
   window[exportName] = VentsManager;
